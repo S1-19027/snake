@@ -65,3 +65,8 @@ void Rank();           // 记录成绩
 void Write();          // 将记录保存到记事本
 void SetColor(int c);  // 贪吃蛇颜色
 int Overlap();         // 判断自撞
+int ThroughWall();     // 判断穿墙
+void Map();            // 生成地图
+void Mode();           // 模式选择
+void Player_Mode();    // 单人or多人
+void Enable_AI();      // 是否使用ai？如果多人，还得增加是否为第二个玩家作为Ai选项

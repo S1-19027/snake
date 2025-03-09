@@ -15,6 +15,9 @@ int main()
 		{
 		case 1: // 选择1表示，开始贪吃蛇游戏
 			SetConsoleOutputCP(936);
+			Mode();
+			Player_Mode();
+			Enable_AI();
 			Name();
 			InitMap(); // 初始化地图、蛇和食物
 			while (MoveSnake())

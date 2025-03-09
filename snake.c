@@ -96,7 +96,19 @@ void Help()
 	printf("q 加速");
 	GotoXY(40, 22);
 	printf("e 减速");
-	GotoXY(40, 24);
+	GotoXY(50, 12);
+	printf("i 上");
+	GotoXY(50, 14);
+	printf("k 下");
+	GotoXY(50, 16);
+	printf("j 左");
+	GotoXY(50, 18);
+	printf("l 右");
+	GotoXY(50, 20);
+	printf("u 加速");
+	GotoXY(50, 22);
+	printf("o 减速");
+	GotoXY(44, 24);
 	printf("当蛇撞到自身或撞墙时游戏结束");
 	GotoXY(45, 26);
 	printf("按任意键返回上级菜单");
@@ -131,21 +143,7 @@ void InitMap()
 		printf("o");										// 打印蛇身
 	}
 	// 生成地图上下边界
-	for (int i = 0; i < MAP_WIDTH; i++)
-	{
-		GotoXY(i, 0);
-		printf("-");
-		GotoXY(i, MAP_HEIGHT - 1);
-		printf("-");
-	}
-	// 生成地图左右边界
-	for (int i = 1; i < MAP_HEIGHT - 1; i++)
-	{
-		GotoXY(0, i);
-		printf("|");
-		GotoXY(MAP_WIDTH - 1, i);
-		printf("|");
-	}
+	Map();
 	// 生成食物
 	PrintFood();
 	// 生成障碍物
@@ -296,6 +294,31 @@ int MoveSnake()
 	GotoXY(snake.snakeNode[0].x, snake.snakeNode[0].y);
 	SetColor(11);
 	printf("@");
+	if (!ThroughWall())
+	{ // 如果撞墙，穿墙
+		if (snake.snakeNode[0].x < 1 || snake.snakeNode[0].x > MAP_WIDTH - 2)
+		{
+			if (snake.snakeNode[0].x < 1)
+			{
+				snake.snakeNode[0].x = MAP_WIDTH - 2;
+			}
+			else if (snake.snakeNode[0].x > MAP_WIDTH - 2)
+			{
+				snake.snakeNode[0].x = 1;
+			}
+		}
+		else if (snake.snakeNode[0].y > MAP_HEIGHT - 2 || snake.snakeNode[0].y < 1)
+		{
+			if (snake.snakeNode[0].y > MAP_HEIGHT - 2)
+			{
+				snake.snakeNode[0].y = 1;
+			}
+			else if (snake.snakeNode[0].y < 1)
+			{
+				snake.snakeNode[0].y = MAP_HEIGHT - 2;
+			}
+		}
+	}
 	// 判断是否吃到食物，如果蛇头的位置和食物的位置相同表示吃到食物
 	if (snake.snakeNode[0].x == food.x && snake.snakeNode[0].y == food.y)
 	{
@@ -355,7 +378,7 @@ int MoveSnake()
 	}
 	// 判断是否死亡
 	if (!IsCorrect())
-	{ // 如果撞墙，则清除屏幕，打印最终得分，游戏结束
+	{ // 如果撞障碍物，则清除屏幕，打印最终得分，游戏结束
 
 		SetConsoleOutputCP(936);
 		SetConsoleCP(936);
@@ -373,6 +396,7 @@ int MoveSnake()
 		return 0;
 	}
 
+	Map();
 	if (Overlap()) // 判断是否自撞
 	{
 		int t = snake.length;
@@ -404,11 +428,16 @@ int MoveSnake()
 /*判断是否自撞或撞墙,返回值为0表示自撞或撞墙，否则为1*/
 int IsCorrect()
 {
-	if (snake.snakeNode[0].x == 0 || snake.snakeNode[0].y == 0 || snake.snakeNode[0].x == MAP_WIDTH - 1 || snake.snakeNode[0].y == MAP_HEIGHT - 1) // 判断蛇头是否撞墙
-		return 0;
-	if (snake.snakeNode[0].x == barrier.x && snake.snakeNode[0].y == barrier.y) // 判断蛇头是否撞墙
+
+	if (snake.snakeNode[0].x == barrier.x && snake.snakeNode[0].y == barrier.y || snake.snakeNode[0].x == barrier.x + 1 && snake.snakeNode[0].y == barrier.y + 1) // 判断蛇头是否撞墙
 		return 0;
 
+	return 1;
+}
+int ThroughWall()
+{
+	if (snake.snakeNode[0].x == 0 || snake.snakeNode[0].y == 0 || snake.snakeNode[0].x == MAP_WIDTH - 1 || snake.snakeNode[0].y == MAP_HEIGHT - 1) // 判断蛇头是否撞墙
+		return 0;
 	return 1;
 }
 
@@ -420,7 +449,7 @@ int Overlap()
 	{ // 判断蛇头是否和蛇身重叠，重叠表示自撞
 		if (snake.snakeNode[0].x == snake.snakeNode[i].x && snake.snakeNode[0].y == snake.snakeNode[i].y)
 		{
-			//            //表示存在重叠，需要断尾
+			//           表示存在重叠，需要断尾
 			//			for (int j = i+1; i < t; j++){
 			//              GotoXY(snake.snakeNode[j].x ,snake.snakeNode[j].y);
 			//               printf(" ");
@@ -430,7 +459,26 @@ int Overlap()
 	}
 	return 0;
 }
-
+/*生成地图函数*/
+void Map()
+{
+	// SetColor(rand() % 10 + 2); 则随机改变边框颜色
+	for (int i = 0; i < MAP_WIDTH; i++)
+	{
+		GotoXY(i, 0);
+		printf("-");
+		GotoXY(i, MAP_HEIGHT - 1);
+		printf("-");
+	}
+	// 生成地图左右边界
+	for (int i = 1; i < MAP_HEIGHT - 1; i++)
+	{
+		GotoXY(0, i);
+		printf("|");
+		GotoXY(MAP_WIDTH - 1, i);
+		printf("|");
+	}
+}
 /*慢速调整函数*/
 void SpeedControl()
 {
@@ -625,3 +673,6 @@ void PrintBarrier()
 	GotoXY(barrier.x, barrier.y);
 	printf("■");
 }
+void Mode() {}
+void Player_Mode() {}
+void Enable_AI() {}
