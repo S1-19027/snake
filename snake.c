@@ -1,14 +1,16 @@
 #include "snake.h"
 
 /*全局变量定义*/
-Snake snake;			// 定义蛇结构体变量
-Food food;				// 定义食物结构体变量
-Barrier barrier;		// 定义障碍物结构体变量
-char now_Dir = RIGHT;	// 当前蛇头方向
-char direction = RIGHT; // 预期蛇头方向
-Data data[100];			// 用户记录
-int unknown_food;		// 食物代表的分数
-int x = 2;				// 设置判断速度全局变量
+Snake snake1 = {.length = 3, .speed = 250, .snake_head = '@', .snake_body = 'o', .x = 1, .Dir = RIGHT};
+Snake snake2 = {.length = 3, .speed = 250, .snake_head = '@', .snake_body = 'o', .x = 1, .Dir = RIGHT};
+Food food;				 // 定义食物结构体变量
+Barrier barrier;		 // 定义障碍物结构体变量
+char direction1 = RIGHT; // 预期蛇头方向
+char direction2 = RIGHT;
+Data data[100];	  // 用户记录
+int unknown_food; // 食物代表的分数
+				  // 设置判断速度全局变量
+
 /*主菜单实现*/
 int Menu()
 {
@@ -116,43 +118,62 @@ void Help()
 	char ch = _getch();
 	system("cls");
 }
+void Init(int player, int AI)
+{
+	if (player == 1)
+	{
+		InitMap(&snake1);
 
-/*初始化地图函数*/
-void InitMap()
+		// if (AI) {  AI 蛇,设计AI蛇的函数逻辑;AI蛇的结构体已经给出;
+
+		// }
+	}
+	else if (player == 2)
+	{
+		InitMap(&snake1);
+		InitMap(&snake2);
+		while (abs(snake2.snakeNode[0].x - snake1.snakeNode[0].x) < 4)
+		{
+			InitMap(&snake2);
+		}
+		// if (AI) {  AI 蛇,设计AI蛇的函数逻辑;AI蛇的结构体已经给出;将对手作为AI
+		// }
+	}
+};
+void InitMap(Snake *snake)
 {
 	SetConsoleOutputCP(936);
 	Hide(); // 隐藏光标
-	// 设置蛇头位置在地图中心
-	snake.snakeNode[0].x = MAP_WIDTH / 2 - 1;
-	snake.snakeNode[0].y = MAP_HEIGHT / 2 - 1;
-	GotoXY(snake.snakeNode[0].x, snake.snakeNode[0].y); // 将光标移动到蛇头位置
+
+	// 设置蛇头位置随机生成
+	snake->snakeNode[0].x = (rand() % (MAP_WIDTH - 5)) + 4;
+	snake->snakeNode[0].y = (rand() % (MAP_HEIGHT - 2));
+	GotoXY(snake->snakeNode[0].x, snake->snakeNode[0].y); // 将光标移动到蛇头位置
 	SetColor(11);
-	printf("@");	   // 打印蛇头
-	snake.length = 3;  // 设置蛇长初始值为3节
-	snake.speed = 250; // 设置蛇初始移动速度为250
-	now_Dir = RIGHT;   // 当前蛇头方向
+	printf("%c", snake->snake_head); // 打印蛇头
+	snake->Dir = RIGHT;				 // 当前蛇头方向
 	// 显示蛇身
-	for (int i = 1; i < snake.length; i++)
+	for (int i = 1; i < snake->length; i++)
 	{
 		// 设置蛇身的纵坐标位置和蛇头位置相同
-		snake.snakeNode[i].y = snake.snakeNode[i - 1].y;
+		snake->snakeNode[i].y = snake->snakeNode[i - 1].y;
 		// 设置蛇身的横坐标位置，蛇身在蛇头的左边,所以横坐标依次减1
-		snake.snakeNode[i].x = snake.snakeNode[i - 1].x - 1;
-		GotoXY(snake.snakeNode[i].x, snake.snakeNode[i].y); // 移动光标到蛇身位置
-		SetColor(rand() % 14 + 2);							// 随机设置颜色
-		printf("o");										// 打印蛇身
+		snake->snakeNode[i].x = snake->snakeNode[i - 1].x - 1;
+		GotoXY(snake->snakeNode[i].x, snake->snakeNode[i].y); // 移动光标到蛇身位置
+		SetColor(rand() % 14 + 2);							  // 随机设置颜色
+		printf("%c", snake->snake_body);					  // 打印蛇身
 	}
 	// 生成地图上下边界
 	Map();
 	// 生成食物
-	PrintFood();
+	PrintFood(snake);
 	// 生成障碍物
-	PrintBarrier();
+	PrintBarrier(snake);
 	// 得分说明
 	SetColor(15);
 	GotoXY(50, 5);
 	printf("当前得分:0");
-	SpeedControl2(); // 默认慢速
+	SpeedControl2(snake); // 默认慢速
 	GotoXY(50, 15);
 	printf("  当前速度：慢速  ");
 	GotoXY(50, 7);
@@ -165,8 +186,7 @@ void InitMap()
 	printf("■为障碍物，撞到了会死亡！");
 }
 
-/*生成食物函数*/
-void PrintFood()
+void PrintFood(Snake *snake)
 {
 	int flag = 1;
 	while (flag)
@@ -176,9 +196,9 @@ void PrintFood()
 		food.x = rand() % (MAP_WIDTH - 2) + 1;
 		food.y = rand() % (MAP_HEIGHT - 2) + 1;
 		// 循环判断食物位置是否和蛇的位置重叠，如果重叠则需要重新设置食物位置
-		for (int k = 0; k <= snake.length - 1; k++)
+		for (int k = 0; k <= snake->length - 1; k++)
 		{
-			if (snake.snakeNode[k].x == food.x && snake.snakeNode[k].y == food.y)
+			if (snake->snakeNode[k].x == food.x && snake->snakeNode[k].y == food.y)
 			{
 				flag = 1; // 位置有重叠，需要继续循环
 				break;
@@ -224,32 +244,48 @@ void PrintFood()
 	}
 }
 
-/*蛇移动函数实现,返回值为1表示继续移动，为0表示停止移动*/
-int MoveSnake()
+int MoveSnake(Snake *snake, char direction)
 {
 	SetConsoleOutputCP(936);
-	SetConsoleCP(936);
-
 	Snakenode temp;
 	int flag = 0;
-	temp = snake.snakeNode[snake.length - 1]; // 记录蛇尾
-	for (int i = snake.length - 1; i >= 1; i--)
-		snake.snakeNode[i] = snake.snakeNode[i - 1];	// 将所有蛇身向前移动一个位置
-	GotoXY(snake.snakeNode[1].x, snake.snakeNode[1].y); // 原来蛇头位置为蛇身
+	temp = snake->snakeNode[snake->length - 1]; // 记录蛇尾
+	for (int i = snake->length - 1; i >= 1; i--)
+		snake->snakeNode[i] = snake->snakeNode[i - 1];	  // 将所有蛇身向前移动一个位置
+	GotoXY(snake->snakeNode[1].x, snake->snakeNode[1].y); // 原来蛇头位置为蛇身
 	SetColor(rand() % 14 + 2);
-	printf("o"); // 前进方向打印一节蛇身，其他蛇身不需要打印
+	printf("%c", snake->snake_body); // 前进方向打印一节蛇身，其他蛇身不需要打印
 	// 响应键盘修改
 	if (_kbhit())
 	{
 		// 键盘输入返回1，非键盘输入返回0
 		direction = _getch();
+		if (_kbhit())
+		{
+			char input = _getch();
+			if (input == UP_P1 || input == DOWN_P1 || input == LEFT_P1 || input == RIGHT_P1 ||
+				input == Speedup_P1 || input == Speeddown_P1 || input == Speedup_P1 || input == Speeddown_P1)
+			{
+				if (snake == &snake1)
+					direction = input;
+			}
+			else if (input == UP_P2 || input == DOWN_P2 || input == LEFT_P2 || input == RIGHT_P2 ||
+					 input == Speedup_P2 || input == Speeddown_P2 || input == Speedup_P2 || input == Speeddown_P2)
+			{
+				if (snake == &snake2)
+					direction = input;
+			}
+		}
+
 		switch (direction)
 		{ // 因为每次只有一个键盘输入，所以和方向输入放一起了
-		case Speedup:
-			x = 1;
+		case Speedup_P1:
+		case Speedup_P2:
+			snake->x = 1;
 			break; // 速度修改
-		case Speeddown:
-			x = 2;
+		case Speeddown_P1:
+		case Speeddown_P2:
+			snake->x = 2;
 			break;
 		default:
 			break;
@@ -257,80 +293,90 @@ int MoveSnake()
 
 		switch (direction)
 		{
-		case UP:				 // 按下w键
-			if (now_Dir != DOWN) // 如果蛇头向下，按向上移动的键w时不起作用
-				now_Dir = direction;
+		case UP_P1:
+		case UP_P2:					// 按下w键
+			if (snake->Dir != DOWN) // 如果蛇头向下，按向上移动的键w时不起作用
+				snake->Dir = direction;
 			break;
-		case DOWN:			   // 按下s键
-			if (now_Dir != UP) // 如果蛇头向上，按向下移动的键s时不起作用
-				now_Dir = direction;
+		case DOWN_P1:
+		case DOWN_P2:			  // 按下s键
+			if (snake->Dir != UP) // 如果蛇头向上，按向下移动的键s时不起作用
+				snake->Dir = direction;
 			break;
-		case LEFT:				  // 按下a键
-			if (now_Dir != RIGHT) // 如果蛇头向右，按向左移动的键a时不起作用
-				now_Dir = direction;
+		case LEFT_P1:
+		case LEFT_P2:				 // 按下a键
+			if (snake->Dir != RIGHT) // 如果蛇头向右，按向左移动的键a时不起作用
+				snake->Dir = direction;
 			break;
-		case RIGHT:				 // 按下d键
-			if (now_Dir != LEFT) // 如果蛇头向左，按向右移动的键d时不起作用
-				now_Dir = direction;
+		case RIGHT_P1:
+		case RIGHT_P2:				// 按下d键
+			if (snake->Dir != LEFT) // 如果蛇头向左，按向右移动的键d时不起作用
+				snake->Dir = direction;
 			break;
 		}
 	}
-	switch (now_Dir)
+	switch (snake->Dir)
 	{ // 根据现在的方向修改蛇头的位置
-	case UP:
-		snake.snakeNode[0].y--;
+	case UP_P1:
+	case UP_P2: // 按下w键
+		snake->snakeNode[0].y--;
 		break; // 向上移动
-	case DOWN:
-		snake.snakeNode[0].y++;
+
+	case DOWN_P1:
+	case DOWN_P2: // 按下s键
+		snake->snakeNode[0].y++;
 		break; // 向下移动
-	case LEFT:
-		snake.snakeNode[0].x--;
+
+	case LEFT_P1:
+	case LEFT_P2: // 按下a键:
+		snake->snakeNode[0].x--;
 		break; // 向左移动
-	case RIGHT:
-		snake.snakeNode[0].x++;
+	case RIGHT_P1:
+	case RIGHT_P2: // 按下d键
+		snake->snakeNode[0].x++;
 		break; // 向右移动
 	}
 	// 打印蛇头
-	GotoXY(snake.snakeNode[0].x, snake.snakeNode[0].y);
+	GotoXY(snake->snakeNode[0].x, snake->snakeNode[0].y);
 	SetColor(11);
-	printf("@");
-	if (!ThroughWall())
+	printf("%c", snake->snake_head);
+	if (!ThroughWall(snake))
 	{ // 如果撞墙，穿墙
-		if (snake.snakeNode[0].x < 1 || snake.snakeNode[0].x > MAP_WIDTH - 2)
+		if (snake->snakeNode[0].x < 1 || snake->snakeNode[0].x > MAP_WIDTH - 2)
 		{
-			if (snake.snakeNode[0].x < 1)
+			if (snake->snakeNode[0].x < 1)
 			{
-				snake.snakeNode[0].x = MAP_WIDTH - 2;
+				snake->snakeNode[0].x = MAP_WIDTH - 2;
 			}
-			else if (snake.snakeNode[0].x > MAP_WIDTH - 2)
+			else if (snake->snakeNode[0].x > MAP_WIDTH - 2)
 			{
-				snake.snakeNode[0].x = 1;
+				snake->snakeNode[0].x = 1;
 			}
 		}
-		else if (snake.snakeNode[0].y > MAP_HEIGHT - 2 || snake.snakeNode[0].y < 1)
+		else if (snake->snakeNode[0].y > MAP_HEIGHT - 2 || snake->snakeNode[0].y < 1)
 		{
-			if (snake.snakeNode[0].y > MAP_HEIGHT - 2)
+			if (snake->snakeNode[0].y > MAP_HEIGHT - 2)
 			{
-				snake.snakeNode[0].y = 1;
+				snake->snakeNode[0].y = 1;
 			}
-			else if (snake.snakeNode[0].y < 1)
+			else if (snake->snakeNode[0].y < 1)
 			{
-				snake.snakeNode[0].y = MAP_HEIGHT - 2;
+				snake->snakeNode[0].y = MAP_HEIGHT - 2;
 			}
 		}
 	}
 	// 判断是否吃到食物，如果蛇头的位置和食物的位置相同表示吃到食物
-	if (snake.snakeNode[0].x == food.x && snake.snakeNode[0].y == food.y)
+	if (snake->snakeNode[0].x == food.x && snake->snakeNode[0].y == food.y)
 	{
 		SetConsoleOutputCP(936);
 		SetConsoleCP(936);
-		if (snake.length + unknown_food - 3 < 1 || unknown_food == 0)
+		if (snake->length + unknown_food - 3 < 1 || unknown_food == 0)
 		{
 			SetColor(15);
 			system("cls");
-			data[data[0].count - 1].score = snake.length - 3;
+			data[data[0].count - 1].score = snake->length - 3;
 			GotoXY(45, 14);
-			printf("最终得分：%d", snake.length - 3);
+			printf("最终得分：%d", snake->length - 3);
 			GotoXY(45, 16);
 			printf("中毒，你死了！");
 			GotoXY(45, 18);
@@ -345,18 +391,18 @@ int MoveSnake()
 			printf("  ");
 			GotoXY(temp.x, temp.y);
 			printf(" ");
-			GotoXY(snake.snakeNode[snake.length - 2].x, snake.snakeNode[snake.length - 2].y);
+			GotoXY(snake->snakeNode[snake->length - 2].x, snake->snakeNode[snake->length - 2].y);
 			printf(" ");
-			snake.length--;
+			snake->length--;
 		}
 		else
 		{
 			GotoXY(barrier.x, barrier.y);
 			printf("  ");
-			snake.length += unknown_food; // 吃到食物，蛇长增加
+			snake->length += unknown_food; // 吃到食物，蛇长增加
 		}
-		flag = 1;								  // flag为1表示吃到食物，为0表示没有吃到食物
-		snake.snakeNode[snake.length - 1] = temp; // 吃到食物，蛇尾加一节;实际上是蛇尾不变，蛇头发生了一个位置
+		flag = 1;									// flag为1表示吃到食物，为0表示没有吃到食物
+		snake->snakeNode[snake->length - 1] = temp; // 吃到食物，蛇尾加一节;实际上是蛇尾不变，蛇头发生了一个位置
 	}
 	// 输出蛇此时状态
 	// 没吃到食物时，在原来的蛇尾打印一个空格，去掉原来的蛇尾
@@ -369,24 +415,24 @@ int MoveSnake()
 	{
 		GotoXY(barrier.x, barrier.y);
 		printf("  ");
-		PrintBarrier();
+		PrintBarrier(snake);
 		// 吃到食物，才会更新障碍物
 		//  吃到食物，则需要在地图上重新更新一个食物
-		PrintFood();
+		PrintFood(snake);
 		GotoXY(50, 5);
-		printf("当前得分:%d", snake.length - 3); // 打印得分，得分为蛇长减原始长度3
+		printf("当前得分:%d", snake->length - 3); // 打印得分，得分为蛇长减原始长度3
 	}
 	// 判断是否死亡
-	if (!IsCorrect())
+	if (!IsCorrect(snake))
 	{ // 如果撞障碍物，则清除屏幕，打印最终得分，游戏结束
 
 		SetConsoleOutputCP(936);
 		SetConsoleCP(936);
 		SetColor(15);
 		system("cls");
-		data[data[0].count - 1].score = snake.length - 3;
+		data[data[0].count - 1].score = snake->length - 3;
 		GotoXY(45, 14);
-		printf("最终得分%d  ", snake.length - 3);
+		printf("最终得分%d  ", snake->length - 3);
 		GotoXY(45, 16);
 		printf("你输了！");
 		GotoXY(45, 18);
@@ -397,68 +443,64 @@ int MoveSnake()
 	}
 
 	Map();
-	if (Overlap()) // 判断是否自撞
+	if (Overlap(snake)) // 判断是否自撞
 	{
-		int t = snake.length;
-		for (int j = Overlap() + 1; j < t; j++)
+		int t = snake->length;
+		for (int j = Overlap(snake) + 1; j < t; j++)
 		{
-			GotoXY(snake.snakeNode[j].x, snake.snakeNode[j].y);
+			GotoXY(snake->snakeNode[j].x, snake->snakeNode[j].y);
 			printf(" ");
-			snake.length -= 1;
+			snake->length -= 1;
 		}
 		GotoXY(50, 5);
-		printf("当前得分:   %d  ", snake.length - 3); // 打印得分，得分为蛇长减原始长度3
+		printf("当前得分:   %d  ", snake->length - 3); // 打印得分，得分为蛇长减原始长度3
 	}
-	if (x == 1) // 调整速度
+	if (snake->x == 1) // 调整速度
 	{
-		SpeedControl(); // 快速
+		SpeedControl(snake); // 快速
 		GotoXY(50, 15);
 		printf("  当前速度：快速  ");
 	}
-	else
+	else if (snake->x == 2)
 	{
-		SpeedControl2(); // 慢速
+		SpeedControl2(snake); // 慢速
 		GotoXY(50, 15);
 		printf("  当前速度：慢速  ");
 	}
-	Sleep(snake.speed); // 把进程挂起一段时间，用于控制蛇移动的速度
+	Sleep(snake->speed); // 把进程挂起一段时间，用于控制蛇移动的速度
 	return 1;
 }
 
 /*判断是否自撞或撞墙,返回值为0表示自撞或撞墙，否则为1*/
-int IsCorrect()
-{
 
-	if (snake.snakeNode[0].x == barrier.x && snake.snakeNode[0].y == barrier.y || snake.snakeNode[0].x == barrier.x + 1 && snake.snakeNode[0].y == barrier.y + 1) // 判断蛇头是否撞墙
+int IsCorrect(Snake *snake)
+{
+	if (snake->snakeNode[0].x == barrier.x && snake->snakeNode[0].y == barrier.y || snake->snakeNode[0].x == barrier.x + 1 && snake->snakeNode[0].y == barrier.y + 1) // 判断蛇头是否撞墙
 		return 0;
 
 	return 1;
 }
-int ThroughWall()
+int ThroughWall(Snake *snake)
 {
-	if (snake.snakeNode[0].x == 0 || snake.snakeNode[0].y == 0 || snake.snakeNode[0].x == MAP_WIDTH - 1 || snake.snakeNode[0].y == MAP_HEIGHT - 1) // 判断蛇头是否撞墙
+	if (snake->snakeNode[0].x == 0 || snake->snakeNode[0].y == 0 || snake->snakeNode[0].x == MAP_WIDTH - 1 || snake->snakeNode[0].y == MAP_HEIGHT - 1) // 判断蛇头是否撞墙
 		return 0;
 	return 1;
 }
 
 /*判断是否碰到蛇身*/
-int Overlap()
+
+int Overlap(Snake *snake)
 {
-	// int t = snake.length;
-	for (int i = 1; i < snake.length; i++)
+	for (int i = 1; i < snake->length; i++)
 	{ // 判断蛇头是否和蛇身重叠，重叠表示自撞
-		if (snake.snakeNode[0].x == snake.snakeNode[i].x && snake.snakeNode[0].y == snake.snakeNode[i].y)
+		if (snake->snakeNode[0].x == snake->snakeNode[i].x && snake->snakeNode[0].y == snake->snakeNode[i].y)
 		{
-			//           表示存在重叠，需要断尾
-			//			for (int j = i+1; i < t; j++){
-			//              GotoXY(snake.snakeNode[j].x ,snake.snakeNode[j].y);
-			//               printf(" ");
-			//			snake.length-=1;
 			return i;
 		}
 	}
 	return 0;
 }
+
 /*生成地图函数*/
 void Map()
 {
@@ -480,79 +522,78 @@ void Map()
 	}
 }
 /*慢速调整函数*/
-void SpeedControl()
+
+void SpeedControl(Snake *snake)
 {
-	switch (snake.length)
+	switch (snake->length)
 	{ // 根据蛇长调整蛇的移动速度
 	case 8:
-		snake.speed = 220;
+		snake->speed = 220;
 		break;
 	case 12:
-		snake.speed = 205;
+		snake->speed = 205;
 		break;
 	case 14:
-		snake.speed = 190;
+		snake->speed = 190;
 		break;
 	case 17:
-		snake.speed = 185;
+		snake->speed = 185;
 		break;
 	case 20:
-		snake.speed = 170;
+		snake->speed = 170;
 		break;
 	case 23:
-		snake.speed = 150;
+		snake->speed = 150;
 		break;
 	case 26:
-		snake.speed = 130;
+		snake->speed = 130;
 		break;
 	case 30:
-		snake.speed = 110;
+		snake->speed = 110;
 		break;
 	case 33:
-		snake.speed = 80;
+		snake->speed = 80;
 		break;
 	default:
 		break;
 	}
 }
 
-/*高速调整函数*/
-void SpeedControl2()
+void SpeedControl2(Snake *snake)
 {
-	switch (snake.length)
+	switch (snake->length)
 	{ // 根据蛇长调整蛇的移动速度
 	case 8:
-		snake.speed = 115;
+		snake->speed = 115;
 		break;
 	case 12:
-		snake.speed = 110;
+		snake->speed = 110;
 		break;
 	case 14:
-		snake.speed = 105;
+		snake->speed = 105;
 		break;
 	case 17:
-		snake.speed = 100;
+		snake->speed = 100;
 		break;
 	case 20:
-		snake.speed = 95;
+		snake->speed = 95;
 		break;
 	case 23:
-		snake.speed = 90;
+		snake->speed = 90;
 		break;
 	case 26:
-		snake.speed = 70;
+		snake->speed = 70;
 		break;
 	case 30:
-		snake.speed = 50;
+		snake->speed = 50;
 		break;
 	case 33:
-		snake.speed = 20;
+		snake->speed = 20;
 		break;
 	default:
 		break;
 	}
 }
-
 void Read()
 {
 	FILE *file;
@@ -589,13 +630,30 @@ void List()
 	system("cls");
 }
 
-void Name()
+void Name(int x)
 {
 	SetConsoleOutputCP(936);
-	GotoXY(48, 12);
-	printf("请输入用户名：");
-	GotoXY(48, 14);
-	scanf("%s", &data[data[0].count].name);
+	if (x == 1)
+	{
+		GotoXY(48, 12);
+		printf("请输入用户名：");
+		GotoXY(48, 14);
+		scanf("%s", &data[data[0].count].name);
+	}
+	else if (x == 2)
+	{
+
+		GotoXY(48, 12);
+		printf("请输入用户名1:");
+		GotoXY(48, 14);
+		scanf("%s", &data[data[0].count].name);
+		data[0].count++;
+		system("cls");
+		GotoXY(48, 12);
+		printf("请输入用户名2:");
+		GotoXY(48, 14);
+		scanf("%s", &data[data[0].count].name);
+	}
 	data[0].count++;
 	char ch = _getch();
 	system("cls");
@@ -647,7 +705,7 @@ void SetColor(int c)
 }
 
 /*生成障碍物函数*/
-void PrintBarrier()
+void PrintBarrier(Snake *snake)
 {
 	int flag = 1;
 	while (flag)
@@ -657,9 +715,9 @@ void PrintBarrier()
 		barrier.x = rand() % (MAP_WIDTH - 2) + 1;
 		barrier.y = rand() % (MAP_HEIGHT - 2) + 1;
 		// 循环判断障碍物位置是否和蛇的位置重叠，如果重叠则需要重新设置食物位置
-		for (int k = 0; k <= snake.length - 1; k++)
+		for (int k = 0; k <= snake->length - 1; k++)
 		{
-			if (snake.snakeNode[k].x == barrier.x && snake.snakeNode[k].y == barrier.y && food.x == barrier.x && food.y == barrier.y)
+			if (snake->snakeNode[k].x == barrier.x && snake->snakeNode[k].y == barrier.y && food.x == barrier.x && food.y == barrier.y)
 			{
 				flag = 1; // 位置有重叠，需要继续循环
 				break;
@@ -673,6 +731,81 @@ void PrintBarrier()
 	GotoXY(barrier.x, barrier.y);
 	printf("■");
 }
-void Mode() {}
-void Player_Mode() {}
-void Enable_AI() {}
+int Mode()
+{
+	SetConsoleOutputCP(936);
+	GotoXY(40, 12); // 定位光标位置
+	printf("选择难度模式");
+	GotoXY(43, 14);
+	printf("1.普通模式");
+	GotoXY(43, 16);
+	printf("2.困难模式");
+
+	char ch;
+	int result = 0;
+	ch = _getch(); // 接收用户输入的菜单选项
+	switch (ch)
+	{
+	case '1':
+		result = 1;
+		break;
+
+	case '2':
+		result = 2;
+		break;
+	}
+	system("cls");
+	return result;
+}
+int Player_Mode()
+{
+	SetConsoleOutputCP(936);
+	GotoXY(40, 12); // 定位光标位置
+	printf("选择玩家模式");
+	GotoXY(43, 14);
+	printf("1.单人模式");
+	GotoXY(43, 16);
+	printf("2.双人模式");
+
+	char ch;
+	int result = 0;
+	ch = _getch(); // 接收用户输入的菜单选项
+	switch (ch)
+	{
+	case '1':
+		result = 1;
+		break;
+
+	case '2':
+		result = 2;
+		break;
+	}
+	system("cls");
+	return result;
+}
+int Enable_AI()
+{
+	SetConsoleOutputCP(936);
+	GotoXY(40, 12); // 定位光标位置
+	printf("选择是否启用AI");
+	GotoXY(43, 14);
+	printf("1.启用AI");
+	GotoXY(43, 16);
+	printf("2.不启用AI");
+
+	char ch;
+	int result = 0;
+	ch = _getch(); // 接收用户输入的菜单选项
+	switch (ch)
+	{
+	case '1':
+		result = 1;
+		break;
+
+	case '2':
+		result = 2;
+		break;
+	}
+	system("cls");
+	return result;
+}
