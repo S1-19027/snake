@@ -1,4 +1,6 @@
 #include "snake.h"
+
+clock_t lastUpdateTime;
 int main()
 {
 
@@ -7,8 +9,10 @@ int main()
 	int result_mode;
 	int result_player;
 	int result_AI;
+	int alive1, alive2;
 	SetConsoleOutputCP(936);
 	SetConsoleCP(936);
+	lastUpdateTime = clock();
 	Read();
 	while (end)
 	{
@@ -22,18 +26,38 @@ int main()
 			result_player = Player_Mode();
 			result_AI = Enable_AI();
 			Name(result_player);
-
 			if (result_player == 1)
 			{
 				Init(result_player, result_AI); // 初始化地图、蛇和食物
-				while (MoveSnake(&snake1,direction1))
-					;
+				while (1)
+				{
+					alive1 = MoveSnake(&snake1, direction1, 1);
+					if (alive1 != 1)
+					{
+						data[data[0].count - 1].score = snake1.length - 3;
+						break;
+					}
+				}
 			}
 			else if (result_player == 2)
 			{
 				Init(result_player, result_AI); // 初始化地图、蛇和食物
-				while (MoveSnake(&snake1,direction1) && MoveSnake(&snake2,direction2))
-					;
+
+				while (1)
+				{
+					int alive1 = MoveSnake(&snake1, direction1, 2);
+					int alive2 = MoveSnake(&snake2, direction2, 2);
+
+					if (!alive1 || !alive2)
+					{
+						// 记录两条蛇的最终得分
+						data[data[0].count - 2].score = snake1.length - 3;
+						data[data[0].count - 1].score = snake2.length - 3;
+
+						break; // 结束游戏
+					}
+				};
+
 			} // 如果返回0，则蛇停止移动；返回1，继续移动
 			Rank();
 			break;
