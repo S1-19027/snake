@@ -12,7 +12,7 @@ int main()
 	int alive1, alive2;
 	SetConsoleOutputCP(936);
 	SetConsoleCP(936);
-	lastUpdateTime = clock();
+	
 	Read();
 	while (end)
 	{
@@ -22,6 +22,7 @@ int main()
 		{
 		case 1: // 选择1表示，开始贪吃蛇游戏
 			SetConsoleOutputCP(936);
+			lastUpdateTime = clock();
 			result_mode = Mode();
 			result_player = Player_Mode();
 			result_AI = Enable_AI();

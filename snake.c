@@ -419,11 +419,12 @@ int MoveSnake(Snake *snake, char direction, int player)
 
 			if (snake->length + unknown_food - 3 < 1 || unknown_food == 0)
 			{
-				SetConsoleOutputCP(936);
+
 				SetColor(15);
 				system("cls");
 				if (player == 1)
 				{
+					SetConsoleOutputCP(936);
 					GotoXY(45, 14);
 					printf("玩家1最终得分:%d", snake1.length - 3);
 					GotoXY(45, 16);
@@ -433,6 +434,7 @@ int MoveSnake(Snake *snake, char direction, int player)
 				}
 				else
 				{
+					SetColor(15);
 					SetConsoleOutputCP(936);
 					GotoXY(45, 14);
 					printf("玩家1最终得分:%d", snake1.length - 3);
@@ -516,6 +518,7 @@ int MoveSnake(Snake *snake, char direction, int player)
 
 		if (player == 1)
 		{
+			SetConsoleOutputCP(936);
 			GotoXY(45, 14);
 			printf("最终得分：%d", snake1.length - 3);
 			GotoXY(45, 16);
@@ -525,6 +528,7 @@ int MoveSnake(Snake *snake, char direction, int player)
 		}
 		else
 		{
+			SetConsoleOutputCP(936);
 			GotoXY(45, 14);
 			printf("玩家1最终得分:%d", snake1.length - 3);
 			GotoXY(45, 16);

@@ -1,11 +1,11 @@
-17
+21
    21
 hj 15
+sad 10
+af 9
 nvnv 3
 jykk 1
 0 1
-knk 0
-ààà 0
 ğğ 0
 cd 0
 gkl 0
@@ -14,5 +14,9 @@ gkl 0
 svadad 0
 jkn 0
 0 0
+knk 0
+ààà 0
 asd -1
+fh -1
+sd -1
 s -3
