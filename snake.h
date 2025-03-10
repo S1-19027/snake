@@ -32,11 +32,17 @@
 #define MAX_BARRIER 10
 
 /*结构体定义*/
-typedef struct // 定义食物、障碍物和蛇位置的结构体
+typedef struct Point // 定义食物、障碍物和蛇位置的结构体
 {
     int x; // x坐标位置
     int y; // y坐标位置
-} Food, Barrier, Snakenode;
+}  Barrier, Snakenode;
+typedef struct {
+    int x;
+    int y;
+    int score_food;
+
+} Food;
 // 方向枚举
 typedef enum
 {
@@ -69,7 +75,6 @@ typedef struct
 extern Data data[100];
 // typedef struct 定义AI蛇
 // {
-
 // } AI_snake;
 
 /*函数定义*/

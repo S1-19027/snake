@@ -8,10 +8,9 @@ int foodCount = 1;
 int barrierCount = 1;
 char direction1 = RIGHT; // 预期蛇头方向
 char direction2 = RIGHT;
-Data data[100];	  // 用户记录
-int unknown_food; // 食物代表的分数
+Data data[100]; // 用户记录
 
-const double updateInterval = 5.0; // 每 10 秒增加一次
+const double updateInterval = 10.0; // 每 10 秒增加一次
 
 /*主菜单实现*/
 int Menu()
@@ -113,7 +112,7 @@ void Help()
 	GotoXY(50, 22);
 	printf("o 减速");
 	GotoXY(44, 24);
-	printf("当蛇撞到自身或撞墙时游戏结束");
+	printf("当蛇撞墙时游戏结束");
 	GotoXY(45, 26);
 	printf("按任意键返回上级菜单");
 	Hide(); // 隐藏光标
@@ -250,14 +249,17 @@ void PrintFood(Snake *snake)
 		int nb = rand() % 3; // 选择随机生成的食物
 		if (nb == 0)
 		{
-			unknown_food = 1;
+			foods[i].score_food = 1;
 			SetColor(13);
+
 			printf("*"); // 普通食物
 		}
 		else if (nb == 1)
 		{
-			unknown_food = 3;
+			foods[i].score_food = 3;
+
 			SetColor(10);
+
 			printf("$"); // 精华食物
 		}
 		else if (nb == 2)
@@ -265,16 +267,17 @@ void PrintFood(Snake *snake)
 			int sb = rand() % 10 + 1;
 			if (sb == 1)
 			{
-				unknown_food = 0;
+				foods[i].score_food = 0;
 			}
 			else if (sb >= 2 && sb <= 7)
 			{
-				unknown_food = 3;
+				foods[i].score_food = 3;
 			}
 			else
 			{
-				unknown_food = -1;
+				foods[i].score_food = -1;
 			}
+
 			SetColor(12);
 			printf("?"); // 未知的食物
 		}
@@ -417,7 +420,7 @@ int MoveSnake(Snake *snake, char direction, int player)
 		{
 			SetConsoleOutputCP(936);
 
-			if (snake->length + unknown_food - 3 < 1 || unknown_food == 0)
+			if (snake->length + foods[i].score_food - 3 < 1 || foods[i].score_food == 0)
 			{
 
 				SetColor(15);
@@ -449,7 +452,7 @@ int MoveSnake(Snake *snake, char direction, int player)
 				system("cls");
 				return 0;
 			}
-			else if (unknown_food == -1) // 吃到食物，更新障碍物
+			else if (foods[i].score_food == -1) // 吃到食物，但是-1
 			{
 				for (int k = 0; k < barrierCount - 1; k++)
 				{
@@ -470,7 +473,7 @@ int MoveSnake(Snake *snake, char direction, int player)
 					GotoXY(barriers[k].x, barriers[k].y);
 					printf("  ");
 				}
-				snake->length += unknown_food; // 吃到食物，蛇长增加
+				snake->length += foods[i].score_food; // 吃到食物，蛇长增加
 			}
 			flag = 1;									// flag为1表示吃到食物，为0表示没有吃到食物
 			snake->snakeNode[snake->length - 1] = temp; // 吃到食物，蛇尾加一节;实际上是蛇尾不变，蛇头发生了一个位置
@@ -784,6 +787,7 @@ void Name(int x)
 	SetConsoleOutputCP(936);
 	if (x == 1)
 	{
+		SetConsoleOutputCP(936);
 		GotoXY(48, 12);
 		printf("请输入用户名：");
 		GotoXY(48, 14);
@@ -791,7 +795,7 @@ void Name(int x)
 	}
 	else if (x == 2)
 	{
-
+		SetConsoleOutputCP(936);
 		GotoXY(48, 12);
 		printf("请输入用户名1:");
 		GotoXY(48, 14);
@@ -799,6 +803,7 @@ void Name(int x)
 		data[0].count++;
 		system("cls");
 		GotoXY(48, 12);
+		SetConsoleOutputCP(936);
 		printf("请输入用户名2:");
 		GotoXY(48, 14);
 		scanf("%s", &data[data[0].count].name);
@@ -865,7 +870,6 @@ void AddBarrier()
 void PrintBarrier(Snake *snake)
 {
 	int flag = 1;
-	Barrier barrier;
 	for (int i = 0; i <= barrierCount - 1; i++)
 	{
 		while (flag)
@@ -875,30 +879,29 @@ void PrintBarrier(Snake *snake)
 			// 循环判断障碍物位置是否和蛇的位置重叠，如果重叠则需要重新设置食物位置
 			for (int k = 0; k <= snake->length - 1; k++)
 			{
-				if (snake->snakeNode[k].x == barrier.x && snake->snakeNode[k].y == barrier.y)
+				if (snake->snakeNode[k].x == barriers[i].x && snake->snakeNode[k].y == barriers[i].y)
 				{
-					barrier.x = rand() % (MAP_WIDTH - 2) + 1;
-					barrier.y = rand() % (MAP_HEIGHT - 2) + 1;
+					barriers[i].x = rand() % (MAP_WIDTH - 2) + 1;
+					barriers[i].y = rand() % (MAP_HEIGHT - 2) + 1;
 					flag = 1; // 位置有重叠，需要继续循环
 					break;
 				}
 			}
 			for (int k = 0; k <= foodCount - 1; k++)
 			{
-				if (foods[k].x == barrier.x && foods[k].y == barrier.y)
+				if (foods[k].x == barriers[i].x && foods[k].y == barriers[i].y)
 				{
-					barrier.x = rand() % (MAP_WIDTH - 2) + 1;
-					barrier.y = rand() % (MAP_HEIGHT - 2) + 1;
+					barriers[i].x = rand() % (MAP_WIDTH - 2) + 1;
+					barriers[i].y = rand() % (MAP_HEIGHT - 2) + 1;
 					flag = 1; // 位置有重叠，需要继续循环
 					break;
 				}
 			}
-			if (barrier.x == 0 || barrier.y == 0 || barrier.x == MAP_HEIGHT || barrier.y == MAP_WIDTH)
+			if (barriers[i].x == 0 || barriers[i].y == 0 || barriers[i].x == MAP_HEIGHT || barriers[i].y == MAP_WIDTH)
 			{
-				barrier.x = rand() % (MAP_WIDTH - 2) + 1;
-				barrier.y = rand() % (MAP_HEIGHT - 2) + 1;
+				barriers[i].x = rand() % (MAP_WIDTH - 2) + 1;
+				barriers[i].y = rand() % (MAP_HEIGHT - 2) + 1;
 				flag = 1; // 位置有重叠，需要继续循环
-				flag = 1;
 			}
 		}
 	}
